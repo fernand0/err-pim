@@ -134,24 +134,27 @@ class ErrPim(BotPlugin):
         
         name=args
         found=0
-        self.send(msg.frm,
-                  'Buscando... "{0}" '.format(name),
-                  in_reply_to=msg,
-                  groupchat_nick_reply=True)
+        yield('Looking for... "{0}" '.format(name))
+        #self.send(msg.frm,
+        #          'Buscando... "{0}" '.format(name),
+        #          in_reply_to=msg,
+        #          groupchat_nick_reply=True)
         for record in soup.find_all('tr'):
             if  re.match(".*"+name+".*", record.get_text(),re.IGNORECASE):
                  txt=''
                  for dato in record.find_all('td'):
                      txt=txt +' ' + dato.get_text()
-                 yield txt
+                 yield(txt)
                  found = found + 1
         if (found==0):
-            self.send(msg.frm,
-                      '"{0}" not found.'.format(name),
-                      in_reply_to=msg,
-                      groupchat_nick_reply=True)
-        self.send(msg.frm,
-                  '{0}'.format(end()),
-                  in_reply_to=msg,
-                  groupchat_nick_reply=True)
+            yield('"{0}" not found.'.format(name))
+            #self.send(msg.frm,
+            #          '"{0}" not found.'.format(name),
+            #          in_reply_to=msg,
+            #          groupchat_nick_reply=True)
+        yield('{0}'.format(end()))
+        #self.send(msg.frm,
+        #          '{0}'.format(end()),
+        #          in_reply_to=msg,
+        #          groupchat_nick_reply=True)
 
