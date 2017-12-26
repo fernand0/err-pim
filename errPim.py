@@ -1,6 +1,6 @@
 # This is a skeleton for Err plugins, use this to get started quickly.
 
-from errbot import BotPlugin, botcmd
+from errbot import BotPlugin, botcmd, backends
 import configparser
 import subprocess
 import os
@@ -60,19 +60,20 @@ class ErrPim(BotPlugin):
         yield self.search(msg, args)
         yield end()
 
-    @botcmd(split_args_with=None)
+    @botcmd(split_args_with=None, template="clean")
     def sf(self, msg, args):
         yield "Searching %s"%args[0] 
-        yield self.search(msg, args[0])
-        if len(args) > 1:
-           yield " in %s"%args[1] 
-
         path = self._check_config('pathMail')
-        yield path
+        yield "... in %s" % path
+        #yield "%s" % self.search(msg, args[0])
+        #if len(args) > 1:
+        #   yield " in %s"%args[1] 
+
 	# We are using mairix, which leaves a link to the messages in the
 	# Search folder. Now we just look for the folders where the actual
 	# messages are located.
-        arg='/usr/bin/sudo -H -u %s /bin/ls -l /home/%s/Maildir/.Search/cur' % (path, path)
+        #arg='/usr/bin/sudo -H -u %s /bin/ls -l /home/%s/Maildir/.Search/cur' % (path, path)
+        arg='/usr/bin/sudo -H -u %s /usr/bin/mairix -r "%s"' % (path, args[0])
         p=subprocess.Popen(arg,shell=True,stdout=subprocess.PIPE)
         data = p.communicate()
         
@@ -85,7 +86,11 @@ class ErrPim(BotPlugin):
                 if (len(args) == 1) or (len(args)>1 and folder.find(args[1])>=0):
                     folders.append(folder)
 
-        yield folders
+        self.log.info(folders)
+        reply = ','.join(folders)
+        reply = "{{"+reply+"}}"
+        i = 0
+        yield reply.replace('_','\_')
         yield end()
 
     @botcmd
