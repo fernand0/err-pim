@@ -87,45 +87,49 @@ class ErrPim(BotPlugin):
                     folders.append(folder)
 
         self.log.info(folders)
-        reply = ','.join(folders)
-        reply = "{{"+reply+"}}"
+        reply = ', '.join(folders)
         i = 0
+        # Some folders contain the character '_' which is interpreted as the
+        # starting of underline in markdown.
         yield reply.replace('_','\_')
         yield end()
 
-    @botcmd
+    @botcmd(template="tran")
     def tran(self, msg, args):
         url = 'http://www.zaragoza.es/api/recurso/urbanismo-infraestructuras/tranvia?rf=html&results_only=false&srsname=utm30n'
-        cadTemplate = 'Faltan: [%d, %d] minutos (Destino %s)'
         
         if args:
-           parada = args.upper()
+           stop = args.upper()
         else:
-           parada = "CAMPUS RIO EBRO"
+           stop = "CAMPUS RIO EBRO"
+
+        dataOut = {}
         
-        cad = 'Faltan: %s minutos (Destino %s)'
         request = urllib.request.Request(url)
         headers = {"Accept":  "application/json"}
         response = requests.get(url, headers = headers)
         resProc = response.json() 
         if resProc["totalCount"] > 0:
            tit = 0
+           ii = 0
            for i in range(int(resProc["totalCount"])):
-               if (resProc["result"][i]["title"].find(parada) >= 0):
+               if (resProc["result"][i]["title"].find(stop) >= 0):
                   if (tit == 0):
-                      yield "Parada: " + resProc["result"][i]["title"] + " (" + parada + ")"
+                      dataOut = {'stop': resProc["result"][i]["title"]}
                       tit = 1
-                  dest = {}
                   for j in range(len(resProc["result"][i]["destinos"])):
-                      myDest = resProc["result"][i]["destinos"][j]["destino"] 
-                      if myDest in dest:
-                          dest[myDest].append(resProc["result"][i]["destinos"][j]["minutos"])
-                      else:
-                          dest[myDest] = [resProc["result"][i]["destinos"][j]["minutos"]]
-                  for j in dest.keys():
-                      yield cad % (dest[j], j)
+                      key = 'time'+str(ii+1)+str(j+1)
+                      dataOut[key] = resProc["result"][i]["destinos"][j]["minutos"] 
+                  key = 'destination'+str(ii+1)
+                  ii = ii + 1
+                  dataOut[key] = resProc["result"][i]["destinos"][j]["destino"] 
+           if dataOut:
+               yield(dataOut)
+           else:
+               yield {'stop':'%s Not found' % stop}
+
         else:
-           yield "Sin respuesta"
+            yield {'stop':'Not found'}
         yield end()
 
     @botcmd
