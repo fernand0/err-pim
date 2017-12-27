@@ -1,6 +1,7 @@
 # This is a skeleton for Err plugins, use this to get started quickly.
 
 from errbot import BotPlugin, botcmd, backends
+from errbot.templating import tenv
 import configparser
 import subprocess
 import os
@@ -94,7 +95,7 @@ class ErrPim(BotPlugin):
         yield reply.replace('_','\_')
         yield end()
 
-    @botcmd(template="tran")
+    @botcmd
     def tran(self, msg, args):
         url = 'http://www.zaragoza.es/api/recurso/urbanismo-infraestructuras/tranvia?rf=html&results_only=false&srsname=utm30n'
         
@@ -124,9 +125,10 @@ class ErrPim(BotPlugin):
                   ii = ii + 1
                   dataOut[key] = resProc["result"][i]["destinos"][j]["destino"] 
            if dataOut:
-               yield(dataOut)
+               reply = tenv().get_template('tran.md').render(dataOut)
            else:
-               yield {'stop':'%s Not found' % stop}
+               reply = tenv().get_template('tran.md').render({'stop':'%s Not found' % stop})
+           yield(reply)
 
         else:
             yield {'stop':'Not found'}
