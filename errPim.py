@@ -136,7 +136,7 @@ class ErrPim(BotPlugin):
 
     @botcmd
     def dir(self, msg, args):
-        url='http://diis/?q=directorio'
+        url='http://diis.unizar.es/?q=directorio'
         
         req = urllib.request.Request(url) 
         directorio = urllib.request.urlopen(req)
