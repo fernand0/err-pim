@@ -18,7 +18,6 @@ from bs4 import BeautifulSoup
 import io #import StringIO
 from twitter import *
 import facebook
-from linkedin import linkedin
 import dateparser
 
 def end(msg=""):
@@ -57,23 +56,21 @@ class ErrPim(BotPlugin):
 
     @botcmd
     def sm(self, msg, args):
+        """ Search in a local mail account using mairix (needs to be installed)
+        """
         yield "Indexando ..." 
         yield self.search(msg, args)
         yield end()
 
     @botcmd(split_args_with=None, template="clean")
     def sf(self, msg, args):
+        """ Search in a local mail account using mairix (needs to be installed)
+        It shows the folder.
+        """
         yield "Searching %s"%args[0] 
         path = self._check_config('pathMail')
         yield "... in %s" % path
-        #yield "%s" % self.search(msg, args[0])
-        #if len(args) > 1:
-        #   yield " in %s"%args[1] 
 
-	# We are using mairix, which leaves a link to the messages in the
-	# Search folder. Now we just look for the folders where the actual
-	# messages are located.
-        #arg='/usr/bin/sudo -H -u %s /bin/ls -l /home/%s/Maildir/.Search/cur' % (path, path)
         arg='/usr/bin/sudo -H -u %s /usr/bin/mairix -r "%s"' % (path, args[0])
         p=subprocess.Popen(arg,shell=True,stdout=subprocess.PIPE)
         data = p.communicate()
@@ -97,6 +94,8 @@ class ErrPim(BotPlugin):
 
     @botcmd
     def tran(self, msg, args):
+        """ Show the nex times for a train to arrive to the given stop.
+        """
         url = 'http://www.zaragoza.es/api/recurso/urbanismo-infraestructuras/tranvia?rf=html&results_only=false&srsname=utm30n'
         
         if args:
@@ -136,6 +135,8 @@ class ErrPim(BotPlugin):
 
     @botcmd
     def dir(self, msg, args):
+        """ Search in the DIIS directory for a given name
+        """
         url='http://diis.unizar.es/?q=directorio'
         
         req = urllib.request.Request(url) 
@@ -143,16 +144,17 @@ class ErrPim(BotPlugin):
         
         soup = BeautifulSoup(directorio)
         
-        name=args
         found=0
-        yield('Looking for... "{0}" '.format(name))
-        for record in soup.find_all('tr'):
-            if  re.match(".*"+name+".*", record.get_text(),re.IGNORECASE):
-                 txt=''
-                 for dato in record.find_all('td'):
-                     txt=txt +' ' + dato.get_text()
-                 yield(txt)
-                 found = found + 1
+        if args: 
+            name=args
+            yield('Looking for... "{0}" '.format(name))
+            for record in soup.find_all('tr'):
+                if  re.match(".*"+name+".*", record.get_text(),re.IGNORECASE):
+                     txt=''
+                     for dato in record.find_all('td'):
+                         txt=txt +' ' + dato.get_text()
+                     yield(txt)
+                     found = found + 1
         if (found==0):
             yield('"{0}" not found.'.format(name))
         yield('{0}'.format(end()))
