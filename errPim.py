@@ -8,16 +8,14 @@ import os
 import time
 #import urllib2
 import urllib.request
-import requests
 import re
+import requests
 import sys
 import json
 import pickle
 from bs4 import BeautifulSoup
 #from cStringIO import StringIO
 import io #import StringIO
-from twitter import *
-import facebook
 import dateparser
 
 def end(msg=""):
@@ -137,12 +135,11 @@ class ErrPim(BotPlugin):
     def dir(self, msg, args):
         """ Search in the DIIS directory for a given name
         """
-        url='http://diis.unizar.es/?q=directorio'
+        url='https://diis.unizar.es/es/directorio'
+
+        directorio = requests.get(url)
         
-        req = urllib.request.Request(url) 
-        directorio = urllib.request.urlopen(req)
-        
-        soup = BeautifulSoup(directorio)
+        soup = BeautifulSoup(directorio.text)
         
         found=0
         if args: 
